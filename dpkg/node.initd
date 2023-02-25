@@ -1,0 +1,92 @@
+#!/bin/sh
+# Start/stop the Octez Node
+#
+### BEGIN INIT INFO
+# Provides:          octez-node
+# Required-Start:    
+# Required-Stop:     
+# Should-Start:      $network $named 
+# Should-Stop:       $network $named 
+# Default-Start:     2 3 4 5
+# Default-Stop:
+# Short-Description: The Octez Node daemon
+# Description:       The Octez Node listens to the Tezos gossip network and
+#		     maintains a local copy of the Tezos blockchain.
+### END INIT INFO
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+DESC="octez node"
+NAME=octez-node
+DAEMON=/usr/bin/octez-node
+SCRIPTNAME=/etc/init.d/"$NAME"
+
+test -f $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+# Defaults
+user=tezos
+group=tezos
+nodedir=/var/tezos/node
+logdir=/var/log/tezos
+rotateonstart=1
+othercliopts_node=""
+
+[ -r /etc/octez/node.conf ] && . /etc/octez/node.conf
+[ -z "$logfile" ] && logfile=${logdir}/node.log
+
+initial_configuration ()
+{
+
+	# Check that the node has been configured
+	#
+	if [ ! -f "${nodedir}/config.json" ]; then
+		log_action_msg "Node is not configured" "octez-node"
+		exit 2
+	fi
+
+}
+
+rotate_logs ()
+{
+	# Make log files and rotate if necessary
+	#
+	mkdir -p ${logdir}
+	chown -R $user:$group ${logdir}
+	if [ ${rotateonstart} = "yes" ]; then
+		log_daemon_msg "Rotating Octez Node logs" "octez-node"
+		[ -f "${logfile}" ] && mv "${logfile}" "${logfile}.1"
+	fi
+}
+
+case "$1" in
+start)	initial_configuration
+	rotate_logs
+	log_daemon_msg "Starting Octez Node" "octez-node"
+	pgrep -q octez-node
+	if [ "$?" = "0" ]; then
+		log_action_msg "Octez node already running?" "octez-node"
+		exit 2
+	fi
+	su $user -c "${DAEMON} run --data-dir ${nodedir} --log-output=${logfile}  ${othercliopts_node}" &
+        log_end_msg $?
+	;;
+stop)	log_daemon_msg "Stopping Octez Node" "octez-node"
+        pkill octez-node
+        ;;
+restart) log_daemon_msg "Restarting Octez Node" "octez-node" 
+        $0 stop
+        $0 start
+        ;;
+reload|force-reload) log_daemon_msg "No action for reload for Octez" "octez-node"
+	# cron reloads automatically
+        log_end_msg 0
+        ;;
+status)
+        pgrep octez-node && exit 0 || exit $?
+        ;;
+*)	log_action_msg "Usage: $0 {start|stop|status|restart|reload|force-reload}"
+        exit 2
+        ;;
+esac
+exit 0

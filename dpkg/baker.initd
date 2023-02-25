@@ -1,0 +1,132 @@
+#!/bin/bash
+# Start/stop the Octez Bakers and Accusers
+#
+### BEGIN INIT INFO
+# Provides:          octez-baker
+# Required-Start:    octez-node
+# Required-Stop:     
+# Should-Start:      $network $named 
+# Should-Stop:       $network $named 
+# Default-Start:     2 3 4 5
+# Default-Stop:
+# Short-Description: The Octez Baking daemons
+# Description:       The Octez Bakers bake new blocks on the Tezos blockchain
+#		     and the Accusers look for bad behaviour
+### END INIT INFO
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+DESC="octez baker"
+NAME=octez-baker
+PIDDIR=/var/run/tezos
+PIDFILEA=$PIDDIR/octez-accuser.pid
+PIDFILEB=$PIDDIR/octez-baker.pid
+SCRIPTNAME=/etc/init.d/"$NAME"
+
+. /lib/lsb/init-functions
+
+# Defaults
+user=tezos
+group=tezos
+nodedir=/var/tezos/node
+logdir=/var/log/tezos
+rotateonstart=yes
+protocols="PtLimaPt PtMumbai alpha"
+waitfornode=yes
+rpcport=8732
+othercliopts_baker_PtLimaPt=""
+othercliopts_baker_PtMumbai=""
+othercliopts_baker_alpha=""
+
+[ -r /etc/octez/node.conf ] && . /etc/octez/node.conf
+[ -r /etc/octez/baker.conf ] && . /etc/octez/baker.conf
+
+logfile_basea="${logdir}/accuser_"
+logfile_baseb="${logdir}/baker_"
+baker="/usr/bin/octez-baker"
+accuser="/usr/bin/octez-accuser"
+
+initial_checks()
+{
+	mkdir -p ${PIDDIR}
+	chown $user:$group ${PIDDIR}
+
+	mkdir -p ${logdir}
+	if [ -z "$lq_vote" ]; then
+		log_action_msg "lq_vote must be set in /etc/octez/baker.conf"
+		exit 3
+	fi
+	if [ -z "$baking_key" ]; then
+		log_action_msg "baking_key must be set in /etc/octez/baker.conf"
+		exit 3
+	fi
+
+}
+
+wait_for_bootstrap()
+{
+	log_daemon_msg "Waiting for node to be bootstrapped" "octez-baker"
+		
+	while [ 1 = 1 ]; do
+		/usr/bin/octez-client -E http://127.0.0.1:$rpcport bootstrapped >/dev/null 2>&1
+		[ "$?" = "0" ] && break
+		log_daemon_msg "Node not ready - sleeping for 30 seconds" "octez-baker"
+		sleep 30
+
+	done
+
+}
+
+rotate_logs ()
+{
+	if [ ${rotateonstart} = "yes" ]; then
+		log_daemon_msg "Rotating Octez Baker logs" "octez-baker"
+		for p in ${protocols}; do
+			mv -f "${logfile_baseb}${p}.log" "${logfile_baseb}${p}.log.1"
+			mv -f "${logfile_basea}${p}.log" "${logfile_basea}${p}.log.1"
+		done
+	fi
+}
+
+case "$1" in
+start)	initial_checks
+	rotate_logs
+	wait_for_bootstrap
+	for p in ${protocols}; do
+		[ ! -x "${baker}-$p" ] && continue
+		log_daemon_msg "Starting Octez Baker for $p" "octez-baker"
+
+		othercliopts="othercliopts_baker_$p"
+		su $user -c "${baker}-$p run with local node $nodedir $baking_key --liquidity-baking-toggle-vote $lq_vote --pidfile ${PIDFILEB}-$p ${!othercliopts} >> ${logfile_baseb}${p}.log 2>&1 &"
+		log_daemon_msg "Starting Octez Accuser for $p" "octez-baker"
+		su $user -c "${accuser}-$p run --pidfile ${PIDFILEA}-$p >> ${logfile_basea}${p}.log 2>&1 &"
+	done
+        log_end_msg $?
+	;;
+stop)	log_daemon_msg "Stopping Octez Baker" "octez-baker"
+	for p in ${protocols}; do
+		[ ! -x "${baker}-$p" ] && continue
+        	kill  `cat ${PIDFILEB}-$p`
+        	kill  `cat ${PIDFILEA}-$p`
+		rm -f ${PIDFILEB}-$p ${PIDFILEA}-$p
+	done
+        ;;
+restart) log_daemon_msg "Restarting Octez Baker" "octez-baker" 
+        $0 stop
+        $0 start
+        ;;
+reload|force-reload) log_daemon_msg "No action for reload for Octez" "octez-baker"
+        log_end_msg 0
+        ;;
+status)
+	for p in ${protocols}; do
+		[ ! -x "${baker}-$p" ] && continue
+        	status_of_proc -p ${PIDFILEB}-$p ${baker}-$p $NAME || exit $?
+        	status_of_proc -p ${PIDFILEA}-$p ${accuser}-$p $NAME || exit $?
+	done
+	exit 0
+        ;;
+*)	log_action_msg "Usage: $0 {start|stop|status|restart|reload|force-reload}"
+        exit 2
+        ;;
+esac
+exit 0
