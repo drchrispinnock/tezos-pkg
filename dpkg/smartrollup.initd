@@ -101,10 +101,11 @@ start)	initial_checks
         log_end_msg $?
 	;;
 stop)	log_daemon_msg "Stopping Octez Rollup Daemons" "octez-smartrollup"
-	for p in ${protocols}; do
-		[ ! -x "${sr}-$p" ] && continue
-        	pkill ${sr}-$p 
-	done
+       	pkill octez-smart
+#	pkill refuses to match octez-smart-rollup XXX
+#	for p in ${protocols}; do
+#		[ ! -x "${sr}-$p" ] && continue
+#	done
         ;;
 restart) log_daemon_msg "Restarting Octez Rollup Daemons" "octez-smartrollup" 
         $0 stop
