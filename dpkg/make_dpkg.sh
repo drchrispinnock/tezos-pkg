@@ -59,6 +59,10 @@ dpkg_rev="$DPKG_REV"
 # Get Octez version from the build
 #
 dpkg_vers=`dune exec tezos-version 2>/dev/null | sed -e 's/\~//' -e 's/\+//'`
+if [ $? != 0 ]; then
+	echo "Cannot get version. Try eval `opam env`?"
+	exit 1
+fi
 
 # Get the local architecture
 #
