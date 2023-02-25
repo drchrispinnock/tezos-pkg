@@ -45,7 +45,7 @@ cd ..
 
 # Opam
 #
-opam init --bare
+opam init --bare --yes
 
 # Build process
 #
