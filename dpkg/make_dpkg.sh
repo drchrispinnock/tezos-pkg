@@ -37,7 +37,13 @@ fi
 # Maintainer
 #
 dpkg_maintainer="Root <root@localhost>"
-[ -f "$myhome/maintainer" ] && dpkg_maintainer=$(cat "$myhome/maintainer")
+if [ -f "$myhome/maintainer" ]; then
+	dpkg_maintainer=$(cat "$myhome/maintainer")
+else
+	echo "WARNING: maintainer file does not exist"
+	echo "Using $dpkg_maintainer"
+	sleep 5
+fi
 
 # Package name
 #
