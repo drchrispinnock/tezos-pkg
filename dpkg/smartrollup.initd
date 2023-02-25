@@ -26,6 +26,7 @@ SCRIPTNAME=/etc/init.d/"$NAME"
 user=tezos
 group=tezos
 nodedir=/var/tezos/node
+clientdir=$HOME/.tezos-client
 logdir=/var/log/tezos
 rotateonstart=yes
 protocols="PtMumbai alpha"
@@ -50,8 +51,8 @@ initial_checks()
 		log_action_msg "rollupdatadir must be set in /etc/octez/smartrollup.conf"
 		exit 3
 	fi
-	if [ -z "$nodedir" ]; then
-		log_action_msg "nodedir must be set in /etc/octez/node.conf"
+	if [ -z "$clientdir" ]; then
+		log_action_msg "clientdir must be set"
 		exit 3
 	fi
 
@@ -95,7 +96,7 @@ start)	initial_checks
 		log_daemon_msg "Starting Octez Rollup Daemon for $p" "octez-smartrollup"
 
 		othercliopts="othercliopts_smartrollup_$p"
-		su $user -c "${sr}-$p -d "$nodedir" run --data-dir "$rollupdatadir" ${!othercliopts} >> ${logfile_base}${p}.log 2>&1 &"
+		su $user -c "${sr}-$p -d "$clientdir" run --data-dir "$rollupdatadir" ${!othercliopts} >> ${logfile_base}${p}.log 2>&1 &"
 	done
         log_end_msg $?
 	;;
