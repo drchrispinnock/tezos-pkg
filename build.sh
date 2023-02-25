@@ -34,8 +34,10 @@ chmod +x rustup-init.sh
 # Source code
 #
 git clone ${mastersite}
+[ "$?" != "0" ] && echo "Git failed" && exit 1
 cd tezos
 git checkout $tag
+[ "$?" != "0" ] && echo "Git checkout failed" && exit 1
 
 # Link my stuff into the source directory
 #
@@ -46,12 +48,16 @@ cd ..
 # Opam
 #
 opam init --bare --yes
+[ "$?" != "0" ] && echo "Opam init failed" && exit 1
+
 
 # Build process
 #
 make build-deps
+[ "$?" != "0" ] && echo "Build-deps failed" && exit 1
 eval $(opam env)
 make
+[ "$?" != "0" ] && echo "Build failed" && exit 1
 
 # Make packages
 #
