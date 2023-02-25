@@ -9,7 +9,7 @@
 #
 mastersite="https://gitlab.com/tezos/tezos.git"
 
-whereami=`basename $0`
+whereami=`dirname $0`
 
 [ -z "$1" ] && echo "Usage: $0 tag/branch [revision]" && exit 1
 tag="$1"
@@ -26,6 +26,7 @@ sudo apt-get install -y rsync git m4 build-essential patch unzip wget opam jq bc
 
 # Rust
 #
+echo "===> Building rust"
 wget https://sh.rustup.rs/rustup-init.sh
 chmod +x rustup-init.sh
 ./rustup-init.sh --profile minimal --default-toolchain 1.60.0 -y
