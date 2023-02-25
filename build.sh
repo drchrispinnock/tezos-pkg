@@ -18,7 +18,8 @@ DPKG_REV=1
 [ ! -z "$2"] && DPKG_REV=$2
 export DPKG_REV
 
-directory=`mktemp -d tezos_build_$tag_XXXXXXX`
+#directory=`mktemp -d tezos_build_$tag_XXXXXXX`
+directory="tezos_build_$tag"
 mkdir -p ${directory}
 cd ${directory}
 
