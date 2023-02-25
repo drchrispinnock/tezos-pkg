@@ -4,6 +4,10 @@ MIT license
 
 The directory is designed to live at tezos/scripts/dpkg.
 
+TODO:
+1. Build the file lists automatically from the manifest (if possible)
+2. Consider buildling RPMs
+
 The following patch to the top level Makefile includes a dpkg
 target:
 
