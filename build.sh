@@ -52,8 +52,8 @@ git checkout $tag
 # Link my stuff into the source directory
 #
 cd scripts
-echo "ln -sf $whereami/dpkg ."
 ln -sf $whereami/dpkg .
+ln -sf $whereami/rpm .
 sleep 5
 cd ..
 
@@ -73,10 +73,19 @@ make
 
 # Make packages
 #
-sh scripts/dpkg/make_dpkg.sh
+if [ -x /usr/bin/rpm ]; then
+	# Redhat style package management on this system
+	#
+	sh scripts/rpm/make_rpm.sh
+	mv *rpm ../..
+else
+	sh scripts/dpkg/make_dpkg.sh
+	mv *deb ../..
+fi
+
+cd $whereami
 echo
 echo
-mv *deb ../..
 pwd
-ls -l *deb
+ls -l *deb *rpm
 
