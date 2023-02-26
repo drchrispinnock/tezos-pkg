@@ -8,8 +8,7 @@
 # Download Tezos sources, build them and make packages
 #
 mastersite="https://gitlab.com/tezos/tezos.git"
-
-whereami=`dirname $0`
+whereami=`pwd`
 
 [ -z "$1" ] && echo "Usage: $0 tag/branch [revision]" && exit 1
 tag="$1"
@@ -53,7 +52,9 @@ git checkout $tag
 # Link my stuff into the source directory
 #
 cd scripts
-ln -s $whereami/dpkg .
+echo "ln -sf $whereami/dpkg ."
+ln -sf $whereami/dpkg .
+sleep 5
 cd ..
 
 # Opam
