@@ -76,6 +76,7 @@ make
 sh scripts/dpkg/make_dpkg.sh
 echo
 echo
+mv *deb ../..
 pwd
 ls -l *deb
 
