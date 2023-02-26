@@ -35,9 +35,18 @@ chmod +x rustup-init.sh
 
 # Source code
 #
-git clone ${mastersite}
-[ "$?" != "0" ] && echo "Git failed" && exit 1
-cd tezos
+if [ ! -d tezos ]; then
+	git clone ${mastersite}
+	[ "$?" != "0" ] && echo "Git failed" && exit 1
+	cd tezos
+else
+	cd tezos
+	git checkout master
+	[ "$?" != "0" ] && echo "Git update failed" && exit 1
+	git pull
+	[ "$?" != "0" ] && echo "Git pull failed" && exit 1
+fi
+
 git checkout $tag
 [ "$?" != "0" ] && echo "Git checkout failed" && exit 1
 
