@@ -78,7 +78,11 @@ if [ -x /usr/bin/rpm ]; then
 	#
 	sh scripts/rpm/make_rpm.sh
 	mv *rpm ../..
-else
+fi
+
+if [ -x /usr/bin/dpkg ]; then
+	# Debian style package management on this system
+	#
 	sh scripts/dpkg/make_dpkg.sh
 	mv *deb ../..
 fi
