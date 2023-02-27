@@ -113,7 +113,13 @@ to sync and as a result, starting the baker may time out.
 
 ## VDF packages
 
-Work in progress
+1. Setup a rolling node
+2. Install the VDF packages
+
+```
+systemctl enable octez-vdf.service
+systemctl start octez-vdf.service
+```
 
 ## SCORU packages
 
