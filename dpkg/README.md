@@ -114,13 +114,32 @@ to sync and as a result, starting the baker may time out.
 ## VDF packages
 
 1. Setup a rolling node
-2. Install the VDF packages
+2. Install the VDF package
 
 ```
 systemctl enable octez-vdf.service
 systemctl start octez-vdf.service
 ```
 
-## SCORU packages
+## Smart rollup SCORU packages
 
-Work in progress
+1. Setup a rolling node
+2. Install the smart rollup package
+3. Setup a wallet (e.g. called operator) with 10000tz
+4. Get your favourite Wasm kernel and put the hex representation in $KERNEL
+5. Initiate the rollup:
+
+octez-client originate smart rollup from operator \
+	of kind wasm_2_0_0 \
+	of type bytes \
+	with kernel "${KERNEL}" \
+	--burn-cap 999
+
+6. Check that the contents of /etc/octez/smartrollup.conf are suitable.
+
+7. Start the daemons
+
+```
+systemctl enable octez-smartrollup.service
+systemctl start octez-smartrollup.service
+```
